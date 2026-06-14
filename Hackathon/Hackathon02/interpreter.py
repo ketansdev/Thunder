@@ -180,6 +180,20 @@ class Interpreter:
             if method == "toLowerCase":
                 return receiver.lower()
 
+            if method == "trim":
+                return receiver.strip()
+
+            if method == "includes":
+                if not args:
+                    raise JSError("TypeError: includes() requires 1 argument")
+                return args[0] in receiver
+
+            if method == "indexOf":
+                if not args:
+                    raise JSError("TypeError: indexOf() requires 1 argument")
+                idx = receiver.find(self._js_str(args[0]))
+                return idx                  # -1 if not found, matching JS
+
             raise JSError(f"TypeError: '{method}' is not a function on string")
 
         if not isinstance(receiver, list):
@@ -210,6 +224,20 @@ class Interpreter:
             if not receiver:
                 raise JSError("TypeError: pop() called on empty array")
             return receiver.pop()           # mutates in place, returns removed element
+
+        if method == "includes":
+            if not args:
+                raise JSError("TypeError: includes() requires 1 argument")
+            return args[0] in receiver
+
+        if method == "indexOf":
+            if not args:
+                raise JSError("TypeError: indexOf() requires 1 argument")
+            target = args[0]
+            for i, el in enumerate(receiver):
+                if el == target:
+                    return i
+            return -1                       # not found
 
         raise JSError(f"TypeError: '{method}' is not a function on array")
 
@@ -281,6 +309,20 @@ class Interpreter:
            if method == "toLowerCase":
                return obj.lower()
 
+           if method == "trim":
+               return obj.strip()
+
+           if method == "includes":
+               if not args:
+                   raise JSError("TypeError: includes() requires 1 argument")
+               return args[0] in obj
+
+           if method == "indexOf":
+               if not args:
+                   raise JSError("TypeError: indexOf() requires 1 argument")
+               idx = obj.find(self._js_str(args[0]))
+               return idx                  # -1 if not found, matching JS
+
            raise JSError(f"TypeError: '{method}' is not a function on string")
 
         if not isinstance(obj, list):
@@ -308,6 +350,24 @@ class Interpreter:
             if not obj:
                 raise JSError("TypeError: pop() called on empty array")
             return obj.pop()               # mutates in place, returns removed element
+
+        if method == "includes":
+            if not args:
+                raise JSError("TypeError: includes() requires 1 argument")
+            target = args[0]
+            for i, el in enumerate(obj):
+                if el == target:
+                    return True
+            return False
+
+        if method == "indexOf":
+            if not args:
+                raise JSError("TypeError: indexOf() requires 1 argument")
+            target = args[0]
+            for i, el in enumerate(obj):
+                if el == target:
+                    return i
+            return -1                       # not found
 
         raise JSError(f"TypeError: '{method}' is not a function on array")
 
