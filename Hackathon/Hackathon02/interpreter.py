@@ -117,6 +117,10 @@ class Interpreter:
         """Allow a bare function call as a statement (return value discarded)."""
         self._call_function(node)
 
+    def _exec_method_call(self, node):
+        """Allow a bare method call as a statement (return value discarded)."""
+        self._eval_method_call(node)
+
     def _exec_return_stmt(self, node):
         value = self._eval(node.children[0]) if node.children else None
         raise ReturnSignal(value)
@@ -157,6 +161,43 @@ class Interpreter:
             return r.value
         finally:
             self._pop_scope()
+
+    def _eval_method_call(self, node):
+        # node.children: [obj_NAME, method_NAME, arglist?]
+        obj_name  = str(node.children[0])
+        method    = str(node.children[1])
+        raw_args  = node.children[2].children if len(node.children) > 2 else []
+        args      = [self._eval(a) for a in raw_args]
+
+        # console.log is parsed as a method_call by Earley; handle it here
+        if obj_name == "console" and method == "log":
+            print(*[self._js_str(a) for a in args])
+            return None
+
+        obj = self._lookup(obj_name)
+
+        if isinstance(obj, str):
+           if method == "split":
+                sep = self._js_str(args[0]) if args else ","
+                if sep == "":
+                    return list(obj)        # split every character
+                return obj.split(sep)
+           raise JSError(f"TypeError: '{method}' is not a function on string")
+
+        if not isinstance(obj, list):
+            raise JSError(f"TypeError: '{obj_name}' is not an array")
+
+        if method == "reverse":
+            if args:
+                raise JSError("TypeError: reverse() takes no arguments")
+            obj.reverse()           # mutates in place, returns None like JS
+            return obj
+
+        if method == "join":
+            sep = self._js_str(args[0]) if args else ","
+            return sep.join(self._js_str(el) for el in obj)
+
+        raise JSError(f"TypeError: '{method}' is not a function on array")
 
     # ------------------------------------------------------------------ #
     # console.log
@@ -252,6 +293,14 @@ class Interpreter:
         if data == "func_call":
             return self._call_function(node)
 
+        if data == "array_literal":
+            if node.children:
+                return [self._eval(c) for c in node.children[0].children]
+            return []
+
+        if data == "method_call":
+            return self._eval_method_call(node)
+
         if data == "neg":
             return -self._eval(node.children[1])   # child[0] is SUB token
 
@@ -342,6 +391,8 @@ class Interpreter:
             return "false"
         if value is None:
             return "undefined"
+        if isinstance(value, list):
+            return ",".join(self._js_str(el) for el in value)
         if isinstance(value, float) and value == int(value):
             return str(int(value))
         return str(value)
