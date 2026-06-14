@@ -30,9 +30,9 @@ Hackathon02/
 ├── README.md
 │
 └── examples/
-    ├── palindrome.js
-    ├── armstrong.js
-    ├── arrays_demo.js
+    ├── test1.js
+    ├── test2.js
+    ├── test3.js
     └── ...
 ```
 
