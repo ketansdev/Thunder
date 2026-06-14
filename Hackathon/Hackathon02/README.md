@@ -1,6 +1,6 @@
-# Hackathon 02 - JavaScript Interpreter in Python
+# 🚀 Hackathon 02 - JavaScript Interpreter in Python
 
-## Overview
+## 📖 Overview
 
 This project is a custom JavaScript Interpreter built in Python using the Lark parsing library.
 
@@ -10,15 +10,15 @@ The interpreter reads JavaScript source code from a `.js` file, generates an Abs
 
 ---
 
-# Tech Stack
+# 🛠️ Tech Stack
 
-* Python 3.x
-* Lark Parser
-* Custom Tree-Walking Interpreter
+* 🐍 Python 3.x
+* 🌳 Lark Parser
+* ⚙️ Custom Tree-Walking Interpreter
 
 ---
 
-# Project Structure
+# 📁 Project Structure
 
 ```text
 Hackathon02/
@@ -38,7 +38,7 @@ Hackathon02/
 
 ---
 
-# Installation
+# ⚡ Installation
 
 Clone the repository:
 
@@ -55,25 +55,35 @@ pip install -r requirements.txt
 
 ---
 
-# Running the Interpreter
+# ▶️ Running the Interpreter
 
-Run any JavaScript file using:
+### Run any JavaScript file
 
 ```bash
 python main.py path/to/file.js
 ```
 
-Example:
+### Example
 
 ```bash
 python main.py examples/test1.js
 ```
 
+### Example Output
+
+```text
+true
+55
+HELLO WORLD
+```
+
+> ⭐ This is the main command used to execute JavaScript programs using the interpreter.
+
 ---
 
-# Features Implemented
+# ✅ Features Implemented
 
-## Variable Declarations
+## 📝 Variable Declarations
 
 ```js
 let x = 10;
@@ -82,20 +92,20 @@ const name = "Ketan";
 
 Supported:
 
-* let
-* const
+* ✅ let
+* ✅ const
 
 ---
 
-## Primitive Data Types
+## 🔢 Primitive Data Types
 
 Supported:
 
-* number
-* string
-* boolean
-* null
-* undefined
+* ✅ number
+* ✅ string
+* ✅ boolean
+* ✅ null
+* ✅ undefined
 
 Example:
 
@@ -109,7 +119,7 @@ let y = undefined;
 
 ---
 
-## Functions
+## 🔧 Functions
 
 ### Function Declarations
 
@@ -141,7 +151,7 @@ function run(cb) {
 
 ---
 
-## Objects
+## 📦 Objects
 
 Basic object support:
 
@@ -162,13 +172,13 @@ person.age = 26;
 
 ---
 
-## Conditional Statements
+## 🔀 Conditional Statements
 
 Supported:
 
-* if
-* else if
-* else
+* ✅ if
+* ✅ else if
+* ✅ else
 
 Example:
 
@@ -183,7 +193,7 @@ else {
 
 ---
 
-## Loops
+## 🔄 Loops
 
 ### For Loop
 
@@ -211,7 +221,7 @@ do {
 
 ---
 
-# Operators
+# ➕ Operators
 
 ## Arithmetic Operators
 
@@ -266,7 +276,7 @@ Supported:
 
 ---
 
-# Arrays
+# 📚 Arrays
 
 Array literals:
 
@@ -294,16 +304,16 @@ Spread operator:
 
 ### Supported Array Methods
 
-* push()
-* pop()
-* shift()
-* unshift()
-* concat()
-* slice()
-* reverse()
-* sort()
-* includes()
-* indexOf()
+* ✅ push()
+* ✅ pop()
+* ✅ shift()
+* ✅ unshift()
+* ✅ concat()
+* ✅ slice()
+* ✅ reverse()
+* ✅ sort()
+* ✅ includes()
+* ✅ indexOf()
 
 Examples:
 
@@ -316,23 +326,23 @@ nums.sort();
 
 ---
 
-# String Methods
+# 🔤 String Methods
 
 Supported:
 
-* split()
-* trim()
-* replace()
-* replaceAll()
-* substring()
-* slice()
-* toUpperCase()
-* toLowerCase()
-* includes()
-* startsWith()
-* endsWith()
-* indexOf()
-* join()
+* ✅ split()
+* ✅ trim()
+* ✅ replace()
+* ✅ replaceAll()
+* ✅ substring()
+* ✅ slice()
+* ✅ toUpperCase()
+* ✅ toLowerCase()
+* ✅ includes()
+* ✅ startsWith()
+* ✅ endsWith()
+* ✅ indexOf()
+* ✅ join()
 
 Example:
 
@@ -345,7 +355,7 @@ console.log(str.includes("world"));
 
 ---
 
-# Date Support
+# 📅 Date Support
 
 Supported:
 
@@ -355,13 +365,13 @@ let d = new Date();
 
 Methods:
 
-* getFullYear()
-* getMonth()
-* getDate()
-* getDay()
-* getHours()
-* getMinutes()
-* getSeconds()
+* ✅ getFullYear()
+* ✅ getMonth()
+* ✅ getDate()
+* ✅ getDay()
+* ✅ getHours()
+* ✅ getMinutes()
+* ✅ getSeconds()
 
 Example:
 
@@ -373,7 +383,7 @@ console.log(d.getFullYear());
 
 ---
 
-# Example Programs
+# 💡 Example Programs
 
 ### Odd / Even Checker
 
@@ -420,24 +430,24 @@ function isPalindrome(str) {
 
 ---
 
-# Limitations
+# ⚠️ Limitations
 
 This interpreter is intentionally lightweight and does not yet implement the full JavaScript specification.
 
 Some advanced features may be partially implemented or not supported:
 
-* Classes
-* Prototype chain
-* Modules
-* Async / Await
-* Promises
-* DOM APIs
-* Browser APIs
+* ❌ Classes
+* ❌ Prototype chain
+* ❌ Modules
+* ❌ Async / Await
+* ❌ Promises
+* ❌ DOM APIs
+* ❌ Browser APIs
 
 ---
 
-# Author
+# 👨‍💻 Author
 
-Ketan
+**Ketan**
 
-Hackathon 02 Submission
+🚀 Hackathon 02 Submission
