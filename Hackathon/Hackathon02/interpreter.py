@@ -22,6 +22,9 @@ class JSDate:
     def getMonth(self):     return self._dt.month - 1        # 0-indexed like JS
     def getDate(self):      return self._dt.day
     def getDay(self):       return (self._dt.weekday() + 1) % 7  # JS: Sun=0…Sat=6
+    def getHours(self):     return self._dt.hour
+    def getMinutes(self):   return self._dt.minute
+    def getSeconds(self):   return self._dt.second
 
     def __repr__(self):
         return self._dt.strftime("Date(%Y-%m-%d)")
@@ -221,7 +224,8 @@ class Interpreter:
         #     return None
 
         if isinstance(receiver, JSDate):
-            if method not in ("getFullYear", "getMonth", "getDate", "getDay"):
+            if method not in ("getFullYear", "getMonth", "getDate", "getDay",
+                              "getHours", "getMinutes", "getSeconds"):
                 raise JSError(f"TypeError: '{method}' is not a supported Date method")
             if args:
                 raise JSError(f"TypeError: {method}() takes no arguments")
