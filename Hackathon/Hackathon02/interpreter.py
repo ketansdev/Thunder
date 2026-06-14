@@ -49,6 +49,24 @@ class ReturnSignal(Exception):
         self.value = value
 
 
+class JSFunction:
+    """Runtime representation of a function value (func_expr or arrow_func)."""
+    def __init__(self, param_names: list, body, is_concise: bool = False):
+        self.param_names = param_names   # list[str]
+        self.body        = body          # block node, OR expr node (concise arrow)
+        self.is_concise  = is_concise    # True → body is an expr, not a block
+
+
+class JSObject:
+    """Runtime representation of a JS plain object { key: value, … }."""
+    def __init__(self, props: dict):
+        self.props = props               # str → any JS value
+
+    def __repr__(self):
+        pairs = ", ".join(f"{k}: {v!r}" for k, v in self.props.items())
+        return "{" + pairs + "}"
+
+
 class Interpreter:
     def __init__(self):
         self.env_stack: list[dict] = [{}]
@@ -162,6 +180,28 @@ class Interpreter:
     def _exec_mod_assign(self, node):
         name = str(node.children[0])
         self._assign(name, self._lookup(name) % self._eval(node.children[1]))
+
+    def _exec_prop_assign(self, node):
+        # node.children: [obj_NAME, prop_NAME, expr]
+        obj_name = str(node.children[0])
+        prop     = str(node.children[1])
+        value    = self._eval(node.children[2])
+        obj = self._lookup(obj_name)
+        if not isinstance(obj, JSObject):
+            raise JSError(f"TypeError: cannot set property '{prop}' on non-object")
+        obj.props[prop] = value
+
+    def _eval_object_literal(self, node):
+        props = {}
+        if node.children:                        # obj_items present
+            for item in node.children[0].children:   # obj_item nodes
+                key_node = item.children[0]           # obj_key
+                raw_key  = key_node.children[0]
+                # obj_key is NAME or ESCAPED_STRING
+                key = str(raw_key)[1:-1] if str(raw_key).startswith('"') else str(raw_key)
+                val = self._eval(item.children[1])
+                props[key] = val
+        return JSObject(props)
 
     # ------------------------------------------------------------------ #
     # Functions
@@ -449,7 +489,20 @@ class Interpreter:
         raise ReturnSignal(value)
 
     def _call_function(self, node):
+        """Handle a func_call node by name (hoisted / declared functions,
+        or variables holding a JSFunction value)."""
         name = str(node.children[0])
+
+        # First check if the name holds a JSFunction value in the environment
+        try:
+            val = self._lookup(name)
+            if isinstance(val, JSFunction):
+                raw_args = node.children[1].children if len(node.children) > 1 else []
+                arg_values = [self._eval(a) for a in raw_args]
+                return self._call_js_function(val, arg_values, name)
+        except JSError:
+            pass   # not in env — fall through to hoisted functions dict
+
         if name not in self.functions:
             raise JSError(f"ReferenceError: '{name}' is not defined")
 
@@ -463,9 +516,15 @@ class Interpreter:
             param_names = []
             body = rest[0]
 
-        # Evaluate arguments in the *caller's* scope
         raw_args = node.children[1].children if len(node.children) > 1 else []
         arg_values = [self._eval(a) for a in raw_args]
+
+        fn = JSFunction(param_names, body, is_concise=False)
+        return self._call_js_function(fn, arg_values, name)
+
+    def _call_js_function(self, fn: "JSFunction", arg_values: list, name: str = "<anonymous>"):
+        """Shared execution core for all callable values."""
+        param_names = fn.param_names
 
         if len(arg_values) != len(param_names):
             raise JSError(
@@ -473,13 +532,14 @@ class Interpreter:
                 f"got {len(arg_values)}"
             )
 
-        # Execute body in a fresh scope with params bound
         self._push_scope()
         try:
             for pname, pval in zip(param_names, arg_values):
                 self._declare(pname, pval)
-            self._exec_block(body)
-            return None                     # implicit undefined
+            if fn.is_concise:
+                return self._eval(fn.body)   # concise arrow: body is an expr
+            self._exec_block(fn.body)
+            return None                      # implicit undefined
         except ReturnSignal as r:
             return r.value
         finally:
@@ -491,67 +551,107 @@ class Interpreter:
 
     def _invoke_callback(self, cb_node, arg_values: list):
         """
-        Invoke a callback that may be:
-          - a func_expr node  (anonymous/named function expression)
-          - a var node        (reference to a named declared function)
-        arg_values is a plain Python list of already-evaluated values.
+        Resolve cb_node to a JSFunction and invoke it.
+        cb_node may be: func_expr, arrow_func, or var (name of a function/JSFunction).
+        arg_values is a list of already-evaluated Python values.
         """
-        # Resolve what kind of node we have
-        if cb_node.data == "func_expr":
-            # func_expr children: [NAME?, params?, block]
-            # NAME is optional (anonymous); find params and block
-            children = cb_node.children
+        fn = self._resolve_callable(cb_node)
+
+        # JS is permissive: truncate extra args, pad missing with undefined
+        n = len(fn.param_names)
+        if len(arg_values) > n:
+            arg_values = arg_values[:n]
+        elif len(arg_values) < n:
+            arg_values = arg_values + [_UNDEFINED] * (n - len(arg_values))
+
+        return self._call_js_function(fn, arg_values)
+
+    def _resolve_callable(self, node) -> "JSFunction":
+        """Turn an AST node (func_expr / arrow_func / var) into a JSFunction."""
+        if isinstance(node, JSFunction):
+            return node
+
+        if node.data == "func_expr":
+            # children: [NAME?, params?, block]
+            children = node.children
             idx = 0
-            # Skip optional name token
-            from lark import Token as _Token
-            if children and isinstance(children[idx], _Token):
-                idx += 1
+            if children and isinstance(children[idx], Token):
+                idx += 1  # skip optional name
             if children and idx < len(children) and hasattr(children[idx], "data") and children[idx].data == "params":
                 param_names = [str(t) for t in children[idx].children]
                 idx += 1
             else:
                 param_names = []
-            body = children[idx]  # block node
+            body = children[idx]
+            return JSFunction(param_names, body, is_concise=False)
 
-        elif cb_node.data == "var":
-            # Named function reference
-            name = str(cb_node.children[0])
-            if name not in self.functions:
-                raise JSError(f"ReferenceError: '{name}' is not defined")
-            func_node = self.functions[name]
-            rest = func_node.children[1:]
-            if rest[0].data == "params":
-                param_names = [str(t) for t in rest[0].children]
-                body = rest[1]
-            else:
-                param_names = []
-                body = rest[0]
+        if node.data == "arrow_func":
+            return self._make_arrow_function(node)
 
-        else:
-            raise JSError(
-                f"TypeError: callback must be a function, got '{cb_node.data}'"
-            )
+        if node.data == "var":
+            name = str(node.children[0])
+            # Check env for JSFunction value first
+            try:
+                val = self._lookup(name)
+                if isinstance(val, JSFunction):
+                    return val
+            except JSError:
+                pass
+            # Fall back to hoisted function declarations
+            if name in self.functions:
+                func_node = self.functions[name]
+                rest = func_node.children[1:]
+                if rest[0].data == "params":
+                    param_names = [str(t) for t in rest[0].children]
+                    body = rest[1]
+                else:
+                    param_names = []
+                    body = rest[0]
+                return JSFunction(param_names, body, is_concise=False)
+            raise JSError(f"ReferenceError: '{name}' is not defined")
 
-        if len(arg_values) > len(param_names):
-            # JS is permissive: extra args are ignored
-            arg_values = arg_values[:len(param_names)]
-        elif len(arg_values) < len(param_names):
-            arg_values = arg_values + [_UNDEFINED] * (len(param_names) - len(arg_values))
-
-        self._push_scope()
-        try:
-            for pname, pval in zip(param_names, arg_values):
-                self._declare(pname, pval)
-            self._exec_block(body)
-            return None
-        except ReturnSignal as r:
-            return r.value
-        finally:
-            self._pop_scope()
+        raise JSError(f"TypeError: callback must be a function, got '{node.data}'")
 
     def _eval_func_expr(self, node):
-        """A func_expr used as a value just returns itself (the AST node)."""
-        return node
+        """function(...){...} as an expression → JSFunction value."""
+        return self._resolve_callable(node)
+
+    def _eval_arrow_func(self, node):
+        """(a, b) => expr  or  (a, b) => { ... } → JSFunction value."""
+        return self._make_arrow_function(node)
+
+    def _make_arrow_function(self, node) -> "JSFunction":
+        """
+        arrow_func grammar:
+            "(" params? ")" "=>" (block | expr)
+          | NAME            "=>" (block | expr)
+
+        Lark drops the ARROW token (it's a literal).
+        Children are therefore one of:
+            [params, body]   — parenthesised multi-param
+            [body]           — parenthesised zero-param  ()=>
+            [NAME_token, body] — single bare-name param  x =>
+        The body child is a block node or any expr node.
+        """
+        children = node.children
+        if len(children) == 1:
+            # () => body  — zero params
+            param_names = []
+            body_node = children[0]
+        elif isinstance(children[0], Token):
+            # x => body  — single bare-name param
+            param_names = [str(children[0])]
+            body_node = children[1]
+        elif hasattr(children[0], "data") and children[0].data == "params":
+            param_names = [str(t) for t in children[0].children]
+            body_node = children[1]
+        else:
+            # Should not happen, but treat as zero params
+            param_names = []
+            body_node = children[0]
+
+        is_concise = not (hasattr(body_node, "data") and body_node.data == "block")
+        return JSFunction(param_names, body_node, is_concise=is_concise)
 
     def _eval_method_call(self, node):
         # node.children: [obj_NAME, method_NAME, arglist?]
@@ -910,6 +1010,10 @@ class Interpreter:
         if data == "prop_access":
             obj = self._eval(node.children[0])
             prop = str(node.children[1])
+            if isinstance(obj, JSObject):
+                if prop in obj.props:
+                    return obj.props[prop]
+                return _UNDEFINED
             if prop == "length":
                 if isinstance(obj, (list, str)):
                     return len(obj)
@@ -936,6 +1040,12 @@ class Interpreter:
 
         if data == "func_expr":
             return self._eval_func_expr(node)
+
+        if data == "arrow_func":
+            return self._eval_arrow_func(node)
+
+        if data == "object_literal":
+            return self._eval_object_literal(node)
 
         if data == "method_call":
             return self._eval_method_call(node)
@@ -1050,6 +1160,10 @@ class Interpreter:
     def _js_str(self, value) -> str:
         if isinstance(value, JSDate):
             return repr(value)
+        if isinstance(value, JSObject):
+            return "[object Object]"
+        if isinstance(value, JSFunction):
+            return "function"
         if value is True:
             return "true"
         if value is False:

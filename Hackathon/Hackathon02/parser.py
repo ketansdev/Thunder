@@ -23,11 +23,12 @@ JS_GRAMMAR = r"""
     var_decl   : "let" NAME "=" expr
     const_decl : "const" NAME "=" expr
     assign_stmt: NAME "=" expr
-               | NAME "+=" expr   -> plus_assign
-               | NAME "-=" expr   -> minus_assign
-               | NAME "*=" expr   -> mul_assign
-               | NAME "/=" expr   -> div_assign
-               | NAME "%=" expr   -> mod_assign
+               | NAME "+=" expr        -> plus_assign
+               | NAME "-=" expr        -> minus_assign
+               | NAME "*=" expr        -> mul_assign
+               | NAME "/=" expr        -> div_assign
+               | NAME "%=" expr        -> mod_assign
+               | NAME "." NAME "=" expr -> prop_assign
 
     func_decl  : "function" NAME "(" params? ")" block
     params     : NAME ("," NAME)*
@@ -64,6 +65,7 @@ JS_GRAMMAR = r"""
            | prop_access
            | func_call
            | array_literal
+           | object_literal
            | NUMBER                -> number
            | ESCAPED_STRING        -> string
            | "true"               -> true_val
@@ -74,6 +76,15 @@ JS_GRAMMAR = r"""
            | "(" expr ")"
            | new_expr
            | func_expr
+           | arrow_func
+
+    arrow_func    : "(" params? ")" "=>" (block | expr)
+                  | NAME "=>" (block | expr)
+
+    object_literal : "{" obj_items? "}"
+    obj_items      : obj_item ("," obj_item)*
+    obj_item       : obj_key ":" expr
+    obj_key        : NAME | ESCAPED_STRING
 
     func_expr  : "function" NAME? "(" params? ")" block
 
@@ -97,6 +108,7 @@ JS_GRAMMAR = r"""
     NOT  : "!"
     INCR : "++"
     DECR : "--"
+    ARROW: "=>"
 
     NAME       : /[a-zA-Z_$][a-zA-Z0-9_$]*/
     %import common.NUMBER

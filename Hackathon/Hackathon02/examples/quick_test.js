@@ -1,5 +1,10 @@
-const greet = function() {
-    console.log("Hello World");
+let person = {
+    name: "Ketan",
+    age: 25
 };
 
-greet();
+let getInfo = (user) => {
+    return user.name + " is " + user.age;
+};
+
+console.log(getInfo(person));
