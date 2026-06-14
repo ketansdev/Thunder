@@ -1,8 +1,30 @@
 from lark import Tree, Token
+from datetime import datetime as _datetime
 
 
 class JSError(Exception):
     pass
+
+
+class JSDate:
+    """Minimal JS Date object backed by Python datetime."""
+    def __init__(self, *args):
+        if len(args) == 0:
+            self._dt = _datetime.now()
+        elif len(args) == 3:
+            year, month, day = int(args[0]), int(args[1]), int(args[2])
+            # JS months are 0-indexed, Python months are 1-indexed
+            self._dt = _datetime(year, month + 1, day)
+        else:
+            raise JSError("TypeError: Date() accepts 0 or 3 arguments")
+
+    def getFullYear(self):  return self._dt.year
+    def getMonth(self):     return self._dt.month - 1        # 0-indexed like JS
+    def getDate(self):      return self._dt.day
+    def getDay(self):       return (self._dt.weekday() + 1) % 7  # JS: Sun=0…Sat=6
+
+    def __repr__(self):
+        return self._dt.strftime("Date(%Y-%m-%d)")
 
 
 class _UndefinedType:
@@ -197,6 +219,13 @@ class Interpreter:
         # ):
         #     print(*[self._js_str(a) for a in args])
         #     return None
+
+        if isinstance(receiver, JSDate):
+            if method not in ("getFullYear", "getMonth", "getDate", "getDay"):
+                raise JSError(f"TypeError: '{method}' is not a supported Date method")
+            if args:
+                raise JSError(f"TypeError: {method}() takes no arguments")
+            return getattr(receiver, method)()
 
         if isinstance(receiver, str):
             if method == "split":
@@ -689,7 +718,15 @@ class Interpreter:
 
         if data == "func_call":
             return self._call_function(node)
-        
+
+        if data == "new_expr":
+            cls_name = str(node.children[0])
+            if cls_name != "Date":
+                raise JSError(f"TypeError: '{cls_name}' is not a constructor")
+            raw_args = node.children[1].children if len(node.children) > 1 else []
+            args = [self._eval(a) for a in raw_args]
+            return JSDate(*args)
+
         if data == "chain_expr":
             return self._eval_chain_expr(node)
 
@@ -842,6 +879,8 @@ class Interpreter:
         return True
 
     def _js_str(self, value) -> str:
+        if isinstance(value, JSDate):
+            return repr(value)
         if value is True:
             return "true"
         if value is False:

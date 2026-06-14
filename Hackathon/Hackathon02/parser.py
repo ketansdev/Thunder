@@ -72,7 +72,9 @@ JS_GRAMMAR = r"""
            | "undefined"          -> undefined_val
            | NAME                 -> var
            | "(" expr ")"
+           | new_expr
 
+    new_expr      : "new" NAME "(" arglist? ")"
     func_call     : NAME "(" arglist? ")"
     chain_expr    : atom "." NAME "(" arglist? ")"
     subscript     : atom "[" expr "]"
