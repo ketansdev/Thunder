@@ -78,8 +78,9 @@ JS_GRAMMAR = r"""
            | func_expr
            | arrow_func
 
-    arrow_func    : "(" params? ")" "=>" (block | expr)
-                  | NAME "=>" (block | expr)
+    arrow_func    : "(" params? ")" "=>" (block | concise_body)
+                  | NAME "=>" (block | concise_body)
+    concise_body  : expr
 
     object_literal : "{" obj_items? "}"
     obj_items      : obj_item ("," obj_item)*

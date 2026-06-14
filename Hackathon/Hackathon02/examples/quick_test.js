@@ -3,8 +3,5 @@ let person = {
     age: 25
 };
 
-let getInfo = (user) => {
-    return user.name + " is " + user.age;
-};
-
-console.log(getInfo(person));
+console.log(person.name);
+console.log(person.age);

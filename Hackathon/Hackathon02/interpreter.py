@@ -650,7 +650,12 @@ class Interpreter:
             param_names = []
             body_node = children[0]
 
-        is_concise = not (hasattr(body_node, "data") and body_node.data == "block")
+        if hasattr(body_node, "data") and body_node.data == "concise_body":
+            # Unwrap the wrapper rule introduced to prevent ?expr inlining
+            body_node = body_node.children[0]
+            is_concise = True
+        else:
+            is_concise = not (hasattr(body_node, "data") and body_node.data == "block")
         return JSFunction(param_names, body_node, is_concise=is_concise)
 
     def _eval_method_call(self, node):
