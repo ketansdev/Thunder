@@ -73,6 +73,9 @@ JS_GRAMMAR = r"""
            | NAME                 -> var
            | "(" expr ")"
            | new_expr
+           | func_expr
+
+    func_expr  : "function" NAME? "(" params? ")" block
 
     new_expr      : "new" NAME "(" arglist? ")"
     func_call     : NAME "(" arglist? ")"

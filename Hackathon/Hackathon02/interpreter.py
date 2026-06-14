@@ -395,6 +395,53 @@ class Interpreter:
                 raise JSError("TypeError: sort() with comparator not supported")
             return receiver
 
+        # ---- callback-based methods (map/filter/reduce/find/some/every) ----
+        if method in ("map", "filter", "reduce", "find", "some", "every"):
+            if not raw_args:
+                raise JSError(f"TypeError: {method}() requires a callback argument")
+            cb_node = raw_args[0]
+
+            if method == "map":
+                return [self._invoke_callback(cb_node, [el, i, receiver])
+                        for i, el in enumerate(receiver)]
+
+            if method == "filter":
+                return [el for i, el in enumerate(receiver)
+                        if self._truthy(self._invoke_callback(cb_node, [el, i, receiver]))]
+
+            if method == "reduce":
+                if len(receiver) == 0:
+                    if len(raw_args) < 2:
+                        raise JSError("TypeError: reduce() of empty array with no initial value")
+                    return self._eval(raw_args[1])
+                if len(raw_args) >= 2:
+                    acc = self._eval(raw_args[1])
+                    start = 0
+                else:
+                    acc = receiver[0]
+                    start = 1
+                for i in range(start, len(receiver)):
+                    acc = self._invoke_callback(cb_node, [acc, receiver[i], i, receiver])
+                return acc
+
+            if method == "find":
+                for i, el in enumerate(receiver):
+                    if self._truthy(self._invoke_callback(cb_node, [el, i, receiver])):
+                        return el
+                return _UNDEFINED
+
+            if method == "some":
+                for i, el in enumerate(receiver):
+                    if self._truthy(self._invoke_callback(cb_node, [el, i, receiver])):
+                        return True
+                return False
+
+            if method == "every":
+                for i, el in enumerate(receiver):
+                    if not self._truthy(self._invoke_callback(cb_node, [el, i, receiver])):
+                        return False
+                return True
+
         raise JSError(f"TypeError: '{method}' is not a function on array")
 
     def _exec_return_stmt(self, node):
@@ -437,6 +484,74 @@ class Interpreter:
             return r.value
         finally:
             self._pop_scope()
+
+    # ------------------------------------------------------------------ #
+    # Callback invocation (used by map/filter/reduce/find/some/every)
+    # ------------------------------------------------------------------ #
+
+    def _invoke_callback(self, cb_node, arg_values: list):
+        """
+        Invoke a callback that may be:
+          - a func_expr node  (anonymous/named function expression)
+          - a var node        (reference to a named declared function)
+        arg_values is a plain Python list of already-evaluated values.
+        """
+        # Resolve what kind of node we have
+        if cb_node.data == "func_expr":
+            # func_expr children: [NAME?, params?, block]
+            # NAME is optional (anonymous); find params and block
+            children = cb_node.children
+            idx = 0
+            # Skip optional name token
+            from lark import Token as _Token
+            if children and isinstance(children[idx], _Token):
+                idx += 1
+            if children and idx < len(children) and hasattr(children[idx], "data") and children[idx].data == "params":
+                param_names = [str(t) for t in children[idx].children]
+                idx += 1
+            else:
+                param_names = []
+            body = children[idx]  # block node
+
+        elif cb_node.data == "var":
+            # Named function reference
+            name = str(cb_node.children[0])
+            if name not in self.functions:
+                raise JSError(f"ReferenceError: '{name}' is not defined")
+            func_node = self.functions[name]
+            rest = func_node.children[1:]
+            if rest[0].data == "params":
+                param_names = [str(t) for t in rest[0].children]
+                body = rest[1]
+            else:
+                param_names = []
+                body = rest[0]
+
+        else:
+            raise JSError(
+                f"TypeError: callback must be a function, got '{cb_node.data}'"
+            )
+
+        if len(arg_values) > len(param_names):
+            # JS is permissive: extra args are ignored
+            arg_values = arg_values[:len(param_names)]
+        elif len(arg_values) < len(param_names):
+            arg_values = arg_values + [_UNDEFINED] * (len(param_names) - len(arg_values))
+
+        self._push_scope()
+        try:
+            for pname, pval in zip(param_names, arg_values):
+                self._declare(pname, pval)
+            self._exec_block(body)
+            return None
+        except ReturnSignal as r:
+            return r.value
+        finally:
+            self._pop_scope()
+
+    def _eval_func_expr(self, node):
+        """A func_expr used as a value just returns itself (the AST node)."""
+        return node
 
     def _eval_method_call(self, node):
         # node.children: [obj_NAME, method_NAME, arglist?]
@@ -615,6 +730,53 @@ class Interpreter:
                 raise JSError("TypeError: sort() with comparator not supported")
             return obj
 
+        # ---- callback-based methods (map/filter/reduce/find/some/every) ----
+        if method in ("map", "filter", "reduce", "find", "some", "every"):
+            if not raw_args:
+                raise JSError(f"TypeError: {method}() requires a callback argument")
+            cb_node = raw_args[0]
+
+            if method == "map":
+                return [self._invoke_callback(cb_node, [el, i, obj])
+                        for i, el in enumerate(obj)]
+
+            if method == "filter":
+                return [el for i, el in enumerate(obj)
+                        if self._truthy(self._invoke_callback(cb_node, [el, i, obj]))]
+
+            if method == "reduce":
+                if len(obj) == 0:
+                    if len(raw_args) < 2:
+                        raise JSError("TypeError: reduce() of empty array with no initial value")
+                    return self._eval(raw_args[1])
+                if len(raw_args) >= 2:
+                    acc = self._eval(raw_args[1])
+                    start = 0
+                else:
+                    acc = obj[0]
+                    start = 1
+                for i in range(start, len(obj)):
+                    acc = self._invoke_callback(cb_node, [acc, obj[i], i, obj])
+                return acc
+
+            if method == "find":
+                for i, el in enumerate(obj):
+                    if self._truthy(self._invoke_callback(cb_node, [el, i, obj])):
+                        return el
+                return _UNDEFINED
+
+            if method == "some":
+                for i, el in enumerate(obj):
+                    if self._truthy(self._invoke_callback(cb_node, [el, i, obj])):
+                        return True
+                return False
+
+            if method == "every":
+                for i, el in enumerate(obj):
+                    if not self._truthy(self._invoke_callback(cb_node, [el, i, obj])):
+                        return False
+                return True
+
         raise JSError(f"TypeError: '{method}' is not a function on array")
 
     # ------------------------------------------------------------------ #
@@ -771,6 +933,9 @@ class Interpreter:
                 else:
                     result.append(self._eval(item))
             return result
+
+        if data == "func_expr":
+            return self._eval_func_expr(node)
 
         if data == "method_call":
             return self._eval_method_call(node)

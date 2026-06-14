@@ -1,3 +1,5 @@
-let d = new Date();
+const greet = function() {
+    console.log("Hello World");
+};
 
-console.log(d.getHours());
+greet();
