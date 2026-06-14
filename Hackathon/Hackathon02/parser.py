@@ -3,11 +3,14 @@ from lark import Lark
 JS_GRAMMAR = r"""
     start: statement*
 
-    statement: var_decl ";"
+    statement: func_decl
+             | return_stmt ";"
+             | var_decl ";"
              | const_decl ";"
              | assign_stmt ";"
              | incr_expr ";"
              | decr_expr ";"
+             | func_call ";"
              | console_log ";"
              | if_stmt
              | for_stmt
@@ -17,7 +20,11 @@ JS_GRAMMAR = r"""
     var_decl   : "let" NAME "=" expr
     const_decl : "const" NAME "=" expr
     assign_stmt: NAME "=" expr
-           | NAME "+=" expr   -> plus_assign
+               | NAME "+=" expr   -> plus_assign
+
+    func_decl  : "function" NAME "(" params? ")" block
+    params     : NAME ("," NAME)*
+    return_stmt: "return" expr?
 
     console_log: "console" "." "log" "(" arglist? ")"
     arglist    : expr ("," expr)*
@@ -41,12 +48,15 @@ JS_GRAMMAR = r"""
                  | NOT atom -> not_expr
                  | atom
 
-    ?atom      : NUMBER                -> number
+    ?atom      : func_call
+               | NUMBER                -> number
                | ESCAPED_STRING        -> string
                | "true"               -> true_val
                | "false"              -> false_val
                | NAME                 -> var
                | "(" expr ")"
+
+    func_call  : NAME "(" arglist? ")"
 
     COMPARE_OP : "===" | "!==" | "==" | "!=" | "<=" | ">=" | "<" | ">"
     ADD  : "+"

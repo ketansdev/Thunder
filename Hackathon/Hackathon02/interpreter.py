@@ -5,9 +5,16 @@ class JSError(Exception):
     pass
 
 
+class ReturnSignal(Exception):
+    """Used to unwind the call stack on a return statement."""
+    def __init__(self, value):
+        self.value = value
+
+
 class Interpreter:
     def __init__(self):
         self.env_stack: list[dict] = [{}]
+        self.functions: dict = {}           # name → func_decl node
 
     # ------------------------------------------------------------------ #
     # Environment helpers
@@ -99,6 +106,59 @@ class Interpreter:
         self._assign(name, result)
 
     # ------------------------------------------------------------------ #
+    # Functions
+    # ------------------------------------------------------------------ #
+
+    def _exec_func_decl(self, node):
+        name = str(node.children[0])
+        self.functions[name] = node         # store whole node for later call
+
+    def _exec_func_call(self, node):
+        """Allow a bare function call as a statement (return value discarded)."""
+        self._call_function(node)
+
+    def _exec_return_stmt(self, node):
+        value = self._eval(node.children[0]) if node.children else None
+        raise ReturnSignal(value)
+
+    def _call_function(self, node):
+        name = str(node.children[0])
+        if name not in self.functions:
+            raise JSError(f"ReferenceError: '{name}' is not defined")
+
+        func_node = self.functions[name]
+        # func_node.children: [NAME, params (optional), block]
+        rest = func_node.children[1:]       # drop function name
+        if rest[0].data == "params":
+            param_names = [str(t) for t in rest[0].children]
+            body = rest[1]
+        else:
+            param_names = []
+            body = rest[0]
+
+        # Evaluate arguments in the *caller's* scope
+        raw_args = node.children[1].children if len(node.children) > 1 else []
+        arg_values = [self._eval(a) for a in raw_args]
+
+        if len(arg_values) != len(param_names):
+            raise JSError(
+                f"TypeError: '{name}' expects {len(param_names)} arg(s), "
+                f"got {len(arg_values)}"
+            )
+
+        # Execute body in a fresh scope with params bound
+        self._push_scope()
+        try:
+            for pname, pval in zip(param_names, arg_values):
+                self._declare(pname, pval)
+            self._exec_block(body)
+            return None                     # implicit undefined
+        except ReturnSignal as r:
+            return r.value
+        finally:
+            self._pop_scope()
+
+    # ------------------------------------------------------------------ #
     # console.log
     # ------------------------------------------------------------------ #
 
@@ -188,6 +248,9 @@ class Interpreter:
 
         if data == "var":
             return self._lookup(str(node.children[0]))
+
+        if data == "func_call":
+            return self._call_function(node)
 
         if data == "neg":
             return -self._eval(node.children[1])   # child[0] is SUB token
