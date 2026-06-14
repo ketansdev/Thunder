@@ -117,9 +117,71 @@ class Interpreter:
         """Allow a bare function call as a statement (return value discarded)."""
         self._call_function(node)
 
-    def _exec_method_call(self, node):
-        """Allow a bare method call as a statement (return value discarded)."""
-        self._eval_method_call(node)
+    def _exec_chain_expr(self, node):
+        """Allow a bare chained call as a statement (return value discarded)."""
+        self._eval_chain_expr(node)
+
+    def _eval_chain_expr(self, node):
+        # Handle console.log specially
+
+        if (
+            hasattr(node.children[0], "data")
+            and node.children[0].data == "var"
+            and str(node.children[0].children[0]) == "console"
+            and str(node.children[1]) == "log"
+        ):
+            raw_args = node.children[2].children if len(node.children) > 2 else []
+            args = [self._eval(a) for a in raw_args]
+
+            print(*[self._js_str(a) for a in args])
+            return None
+        receiver = self._eval(node.children[0])
+
+        method = str(node.children[1])
+
+        raw_args = node.children[2].children if len(node.children) > 2 else []
+
+        args = [self._eval(a) for a in raw_args]
+
+        # Special case for console.log()
+
+        # if (
+        #     hasattr(node.children[0], "data")
+        #     and node.children[0].data == "var"
+        #     and str(node.children[0].children[0]) == "console"
+        #     and method == "log"
+        # ):
+        #     print(*[self._js_str(a) for a in args])
+        #     return None
+
+        if isinstance(receiver, str):
+            if method == "split":
+                sep = self._js_str(args[0]) if args else ","
+
+                if sep == "":
+                    return list(receiver)
+
+                return receiver.split(sep)
+
+            raise JSError(f"TypeError: '{method}' is not a function on string")
+
+        if not isinstance(receiver, list):
+            raise JSError(
+                f"TypeError: cannot call '{method}' on {type(receiver).__name__}"
+            )
+
+        if method == "reverse":
+            if args:
+                raise JSError("TypeError: reverse() takes no arguments")
+
+            receiver.reverse()
+            return receiver
+
+        if method == "join":
+            sep = self._js_str(args[0]) if args else ","
+            return sep.join(self._js_str(el) for el in receiver)
+
+        raise JSError(f"TypeError: '{method}' is not a function on array")
 
     def _exec_return_stmt(self, node):
         value = self._eval(node.children[0]) if node.children else None
@@ -292,6 +354,9 @@ class Interpreter:
 
         if data == "func_call":
             return self._call_function(node)
+        
+        if data == "chain_expr":
+            return self._eval_chain_expr(node)
 
         if data == "array_literal":
             if node.children:

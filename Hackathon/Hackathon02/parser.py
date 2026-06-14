@@ -11,7 +11,8 @@ JS_GRAMMAR = r"""
              | incr_expr ";"
              | decr_expr ";"
              | func_call ";"
-             | method_call ";"
+             | chain_expr ";"
+            #  | method_call ";"
              | console_log ";"
              | if_stmt
              | for_stmt
@@ -49,18 +50,18 @@ JS_GRAMMAR = r"""
                  | NOT atom -> not_expr
                  | atom
 
-    ?atom      : func_call
-               | method_call
-               | array_literal
-               | NUMBER                -> number
-               | ESCAPED_STRING        -> string
-               | "true"               -> true_val
-               | "false"              -> false_val
-               | NAME                 -> var
-               | "(" expr ")"
+    ?atom      : chain_expr
+           | func_call
+           | array_literal
+           | NUMBER                -> number
+           | ESCAPED_STRING        -> string
+           | "true"               -> true_val
+           | "false"              -> false_val
+           | NAME                 -> var
+           | "(" expr ")"
 
     func_call     : NAME "(" arglist? ")"
-    method_call   : NAME "." NAME "(" arglist? ")"
+    chain_expr    : atom "." NAME "(" arglist? ")"
     array_literal : "[" arglist? "]"
 
     COMPARE_OP : "===" | "!==" | "==" | "!=" | "<=" | ">=" | "<" | ">"

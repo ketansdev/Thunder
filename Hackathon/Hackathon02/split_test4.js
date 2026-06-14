@@ -1,9 +1,5 @@
 let str = "hello";
 
-let chars = str.split("");
-
-let reversedArr = chars.reverse();
-
-let reversed = reversedArr.join("");
+let reversed = str.split("").reverse().join("");
 
 console.log(reversed);
