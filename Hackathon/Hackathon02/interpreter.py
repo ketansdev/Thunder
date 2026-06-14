@@ -174,6 +174,12 @@ class Interpreter:
 
                 return receiver.split(sep)
 
+            if method == "toUpperCase":
+                return receiver.upper()
+
+            if method == "toLowerCase":
+                return receiver.lower()
+
             raise JSError(f"TypeError: '{method}' is not a function on string")
 
         if not isinstance(receiver, list):
@@ -191,6 +197,19 @@ class Interpreter:
         if method == "join":
             sep = self._js_str(args[0]) if args else ","
             return sep.join(self._js_str(el) for el in receiver)
+
+        if method == "push":
+            if not args:
+                raise JSError("TypeError: push() requires at least 1 argument")
+            receiver.extend(args)
+            return len(receiver)            # JS push() returns new length
+
+        if method == "pop":
+            if args:
+                raise JSError("TypeError: pop() takes no arguments")
+            if not receiver:
+                raise JSError("TypeError: pop() called on empty array")
+            return receiver.pop()           # mutates in place, returns removed element
 
         raise JSError(f"TypeError: '{method}' is not a function on array")
 
@@ -255,6 +274,13 @@ class Interpreter:
                 if sep == "":
                     return list(obj)        # split every character
                 return obj.split(sep)
+
+           if method == "toUpperCase":
+               return obj.upper()
+
+           if method == "toLowerCase":
+               return obj.lower()
+
            raise JSError(f"TypeError: '{method}' is not a function on string")
 
         if not isinstance(obj, list):
@@ -269,6 +295,19 @@ class Interpreter:
         if method == "join":
             sep = self._js_str(args[0]) if args else ","
             return sep.join(self._js_str(el) for el in obj)
+
+        if method == "push":
+            if not args:
+                raise JSError("TypeError: push() requires at least 1 argument")
+            obj.extend(args)
+            return len(obj)                 # JS push() returns new length
+
+        if method == "pop":
+            if args:
+                raise JSError("TypeError: pop() takes no arguments")
+            if not obj:
+                raise JSError("TypeError: pop() called on empty array")
+            return obj.pop()               # mutates in place, returns removed element
 
         raise JSError(f"TypeError: '{method}' is not a function on array")
 

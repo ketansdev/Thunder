@@ -1,5 +1,7 @@
-function cube(n) {
-    return n * n * n;
-}
+let arr = [1, 2];
 
-console.log(cube(3));
+arr.push(3);
+arr.push(4);
+
+console.log(arr.pop());
+console.log(arr.join(","));
