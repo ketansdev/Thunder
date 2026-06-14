@@ -135,6 +135,17 @@ class Interpreter:
 
             print(*[self._js_str(a) for a in args])
             return None
+
+        if (
+            hasattr(node.children[0], "data")
+            and node.children[0].data == "var"
+            and str(node.children[0].children[0]) == "Math"
+            and str(node.children[1]) == "floor"
+        ):
+            raw_args = node.children[2].children if len(node.children) > 2 else []
+            if len(raw_args) != 1:
+                raise JSError("TypeError: Math.floor() takes exactly 1 argument")
+            return int(self._eval(raw_args[0]) // 1)
         receiver = self._eval(node.children[0])
 
         method = str(node.children[1])
@@ -359,9 +370,22 @@ class Interpreter:
             return self._eval_chain_expr(node)
 
         if data == "array_literal":
-            if node.children:
-                return [self._eval(c) for c in node.children[0].children]
-            return []
+            if not node.children:
+                return []
+            result = []
+            for item in node.children[0].children:   # array_items children
+                # spread_elem is inlined directly; plain exprs stay in array_item
+                if hasattr(item, "data") and item.data == "spread_elem":
+                    name = str(item.children[0])
+                    val = self._lookup(name)
+                    if not isinstance(val, list):
+                        raise JSError(f"TypeError: spread requires an array, got '{name}'")
+                    result.extend(val)
+                elif hasattr(item, "data") and item.data == "array_item":
+                    result.append(self._eval(item.children[0]))
+                else:
+                    result.append(self._eval(item))
+            return result
 
         if data == "method_call":
             return self._eval_method_call(node)
@@ -372,7 +396,7 @@ class Interpreter:
         if data == "not_expr":
             return not self._truthy(self._eval(node.children[1]))  # child[0] is NOT token
 
-        if data in ("add_expr", "mul_expr"):
+        if data in ("add_expr", "mul_expr", "pow_expr"):
             return self._eval_binop(node)
 
         if data == "compare_expr":
@@ -407,6 +431,8 @@ class Interpreter:
             return int(result) if result == int(result) else result
         if op == "%":
             return left % right
+        if op == "**":
+            return left ** right
         raise JSError(f"Unknown arithmetic operator: '{op}'")
 
     def _eval_compare(self, node):

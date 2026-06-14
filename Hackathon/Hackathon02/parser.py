@@ -45,8 +45,9 @@ JS_GRAMMAR = r"""
     ?expr        : compare_expr
     ?compare_expr: add_expr (COMPARE_OP add_expr)*
     ?add_expr    : mul_expr ((ADD | SUB) mul_expr)*
-    ?mul_expr    : unary_expr ((MUL | DIV | MOD) unary_expr)*
-    ?unary_expr  : SUB atom -> neg
+    ?mul_expr    : pow_expr ((MUL | DIV | MOD) pow_expr)*
+    ?pow_expr    : unary_expr (POW unary_expr)*
+    ?unary_expr  : SUB pow_expr -> neg
                  | NOT atom -> not_expr
                  | atom
 
@@ -62,7 +63,10 @@ JS_GRAMMAR = r"""
 
     func_call     : NAME "(" arglist? ")"
     chain_expr    : atom "." NAME "(" arglist? ")"
-    array_literal : "[" arglist? "]"
+    array_literal : "[" array_items? "]"
+    array_items   : array_item ("," array_item)*
+    array_item    : "..." NAME -> spread_elem
+                  | expr
 
     COMPARE_OP : "===" | "!==" | "==" | "!=" | "<=" | ">=" | "<" | ">"
     ADD  : "+"
@@ -70,6 +74,7 @@ JS_GRAMMAR = r"""
     MUL  : "*"
     DIV  : "/"
     MOD  : "%"
+    POW  : "**"
     NOT  : "!"
     INCR : "++"
     DECR : "--"
