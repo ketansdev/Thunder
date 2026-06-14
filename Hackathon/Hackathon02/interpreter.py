@@ -5,6 +5,19 @@ class JSError(Exception):
     pass
 
 
+class _UndefinedType:
+    """Singleton sentinel for JS `undefined` (distinct from JS `null` → Python None)."""
+    _instance = None
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    def __repr__(self):
+        return "undefined"
+
+_UNDEFINED = _UndefinedType()
+
+
 class ReturnSignal(Exception):
     """Used to unwind the call stack on a return statement."""
     def __init__(self, value):
@@ -105,6 +118,26 @@ class Interpreter:
 
         self._assign(name, result)
 
+    def _exec_minus_assign(self, node):
+        name = str(node.children[0])
+        self._assign(name, self._lookup(name) - self._eval(node.children[1]))
+
+    def _exec_mul_assign(self, node):
+        name = str(node.children[0])
+        self._assign(name, self._lookup(name) * self._eval(node.children[1]))
+
+    def _exec_div_assign(self, node):
+        name = str(node.children[0])
+        value = self._eval(node.children[1])
+        if value == 0:
+            raise JSError("ZeroDivisionError")
+        result = self._lookup(name) / value
+        self._assign(name, int(result) if result == int(result) else result)
+
+    def _exec_mod_assign(self, node):
+        name = str(node.children[0])
+        self._assign(name, self._lookup(name) % self._eval(node.children[1]))
+
     # ------------------------------------------------------------------ #
     # Functions
     # ------------------------------------------------------------------ #
@@ -194,6 +227,44 @@ class Interpreter:
                 idx = receiver.find(self._js_str(args[0]))
                 return idx                  # -1 if not found, matching JS
 
+            if method == "replace":
+                if len(args) < 2:
+                    raise JSError("TypeError: replace() requires 2 arguments")
+                return receiver.replace(self._js_str(args[0]), self._js_str(args[1]), 1)
+
+            if method == "replaceAll":
+                if len(args) < 2:
+                    raise JSError("TypeError: replaceAll() requires 2 arguments")
+                return receiver.replace(self._js_str(args[0]), self._js_str(args[1]))
+
+            if method == "substring":
+                if not args:
+                    raise JSError("TypeError: substring() requires at least 1 argument")
+                length = len(receiver)
+                start = max(0, min(int(args[0]), length))
+                end   = max(0, min(int(args[1]) if len(args) > 1 else length, length))
+                if start > end:
+                    start, end = end, start   # JS substring swaps if start > end
+                return receiver[start:end]
+
+            if method == "slice":
+                length = len(receiver)
+                start = int(args[0]) if len(args) > 0 else 0
+                end   = int(args[1]) if len(args) > 1 else length
+                if start < 0: start = max(length + start, 0)
+                if end   < 0: end   = max(length + end,   0)
+                return receiver[start:end]
+
+            if method == "startsWith":
+                if not args:
+                    raise JSError("TypeError: startsWith() requires at least 1 argument")
+                return receiver.startswith(self._js_str(args[0]))
+
+            if method == "endsWith":
+                if not args:
+                    raise JSError("TypeError: endsWith() requires at least 1 argument")
+                return receiver.endswith(self._js_str(args[0]))
+
             raise JSError(f"TypeError: '{method}' is not a function on string")
 
         if not isinstance(receiver, list):
@@ -238,6 +309,58 @@ class Interpreter:
                 if el == target:
                     return i
             return -1                       # not found
+
+        if method == "shift":
+            if args:
+                raise JSError("TypeError: shift() takes no arguments")
+            if not receiver:
+                return _UNDEFINED
+            return receiver.pop(0)
+
+        if method == "unshift":
+            if not args:
+                raise JSError("TypeError: unshift() requires at least 1 argument")
+            for i, v in enumerate(args):
+                receiver.insert(i, v)
+            return len(receiver)
+
+        if method == "concat":
+            result = list(receiver)
+            for a in args:
+                if isinstance(a, list):
+                    result.extend(a)
+                else:
+                    result.append(a)
+            return result
+
+        if method == "slice":
+            length = len(receiver)
+            start = int(args[0]) if len(args) > 0 else 0
+            end   = int(args[1]) if len(args) > 1 else length
+            if start < 0: start = max(length + start, 0)
+            if end   < 0: end   = max(length + end,   0)
+            return receiver[start:end]
+
+        if method == "splice":
+            if not args:
+                raise JSError("TypeError: splice() requires at least 1 argument")
+            length = len(receiver)
+            start = int(args[0])
+            if start < 0: start = max(length + start, 0)
+            start = min(start, length)
+            delete_count = int(args[1]) if len(args) > 1 else length - start
+            delete_count = max(0, min(delete_count, length - start))
+            items_to_insert = args[2:]
+            removed = receiver[start:start + delete_count]
+            receiver[start:start + delete_count] = items_to_insert
+            return removed
+
+        if method == "sort":
+            if not args:
+                receiver.sort(key=lambda x: (0, x) if isinstance(x, (int, float)) else (1, self._js_str(x)))
+            else:
+                raise JSError("TypeError: sort() with comparator not supported")
+            return receiver
 
         raise JSError(f"TypeError: '{method}' is not a function on array")
 
@@ -323,6 +446,44 @@ class Interpreter:
                idx = obj.find(self._js_str(args[0]))
                return idx                  # -1 if not found, matching JS
 
+           if method == "replace":
+               if len(args) < 2:
+                   raise JSError("TypeError: replace() requires 2 arguments")
+               return obj.replace(self._js_str(args[0]), self._js_str(args[1]), 1)
+
+           if method == "replaceAll":
+               if len(args) < 2:
+                   raise JSError("TypeError: replaceAll() requires 2 arguments")
+               return obj.replace(self._js_str(args[0]), self._js_str(args[1]))
+
+           if method == "substring":
+               if not args:
+                   raise JSError("TypeError: substring() requires at least 1 argument")
+               length = len(obj)
+               start = max(0, min(int(args[0]), length))
+               end   = max(0, min(int(args[1]) if len(args) > 1 else length, length))
+               if start > end:
+                   start, end = end, start
+               return obj[start:end]
+
+           if method == "slice":
+               length = len(obj)
+               start = int(args[0]) if len(args) > 0 else 0
+               end   = int(args[1]) if len(args) > 1 else length
+               if start < 0: start = max(length + start, 0)
+               if end   < 0: end   = max(length + end,   0)
+               return obj[start:end]
+
+           if method == "startsWith":
+               if not args:
+                   raise JSError("TypeError: startsWith() requires at least 1 argument")
+               return obj.startswith(self._js_str(args[0]))
+
+           if method == "endsWith":
+               if not args:
+                   raise JSError("TypeError: endsWith() requires at least 1 argument")
+               return obj.endswith(self._js_str(args[0]))
+
            raise JSError(f"TypeError: '{method}' is not a function on string")
 
         if not isinstance(obj, list):
@@ -368,6 +529,58 @@ class Interpreter:
                 if el == target:
                     return i
             return -1                       # not found
+
+        if method == "shift":
+            if args:
+                raise JSError("TypeError: shift() takes no arguments")
+            if not obj:
+                return _UNDEFINED
+            return obj.pop(0)
+
+        if method == "unshift":
+            if not args:
+                raise JSError("TypeError: unshift() requires at least 1 argument")
+            for i, v in enumerate(args):
+                obj.insert(i, v)
+            return len(obj)
+
+        if method == "concat":
+            result = list(obj)
+            for a in args:
+                if isinstance(a, list):
+                    result.extend(a)
+                else:
+                    result.append(a)
+            return result
+
+        if method == "slice":
+            length = len(obj)
+            start = int(args[0]) if len(args) > 0 else 0
+            end   = int(args[1]) if len(args) > 1 else length
+            if start < 0: start = max(length + start, 0)
+            if end   < 0: end   = max(length + end,   0)
+            return obj[start:end]
+
+        if method == "splice":
+            if not args:
+                raise JSError("TypeError: splice() requires at least 1 argument")
+            length = len(obj)
+            start = int(args[0])
+            if start < 0: start = max(length + start, 0)
+            start = min(start, length)
+            delete_count = int(args[1]) if len(args) > 1 else length - start
+            delete_count = max(0, min(delete_count, length - start))
+            items_to_insert = args[2:]
+            removed = obj[start:start + delete_count]
+            obj[start:start + delete_count] = items_to_insert
+            return removed
+
+        if method == "sort":
+            if not args:
+                obj.sort(key=lambda x: (0, x) if isinstance(x, (int, float)) else (1, self._js_str(x)))
+            else:
+                raise JSError("TypeError: sort() with comparator not supported")
+            return obj
 
         raise JSError(f"TypeError: '{method}' is not a function on array")
 
@@ -426,6 +639,12 @@ class Interpreter:
         while self._truthy(self._eval(cond_node)):
             self._exec_block(body_node)
 
+    def _exec_do_while_stmt(self, node):
+        body_node, cond_node = node.children   # body comes FIRST in do…while
+        self._exec_block(body_node)            # always execute once before checking
+        while self._truthy(self._eval(cond_node)):
+            self._exec_block(body_node)
+
     def _exec_block(self, node):
         self._push_scope()
         try:
@@ -459,6 +678,12 @@ class Interpreter:
         if data == "false_val":
             return False
 
+        if data == "null_val":
+            return None
+
+        if data == "undefined_val":
+            return _UNDEFINED
+
         if data == "var":
             return self._lookup(str(node.children[0]))
 
@@ -467,6 +692,26 @@ class Interpreter:
         
         if data == "chain_expr":
             return self._eval_chain_expr(node)
+
+        if data == "subscript":
+            obj = self._eval(node.children[0])
+            idx = self._eval(node.children[1])
+            if isinstance(obj, (list, str)):
+                if not isinstance(idx, int):
+                    idx = int(idx)
+                if idx < 0 or idx >= len(obj):
+                    return _UNDEFINED
+                return obj[idx]
+            raise JSError(f"TypeError: cannot subscript {type(obj).__name__}")
+
+        if data == "prop_access":
+            obj = self._eval(node.children[0])
+            prop = str(node.children[1])
+            if prop == "length":
+                if isinstance(obj, (list, str)):
+                    return len(obj)
+                raise JSError(f"TypeError: '{prop}' not found on {type(obj).__name__}")
+            raise JSError(f"TypeError: unknown property '{prop}'")
 
         if data == "array_literal":
             if not node.children:
@@ -497,6 +742,28 @@ class Interpreter:
 
         if data in ("add_expr", "mul_expr", "pow_expr"):
             return self._eval_binop(node)
+
+        if data == "or_expr":
+            children = node.children
+            result = self._eval(children[0])
+            i = 1
+            while i < len(children):
+                if self._truthy(result):   # short-circuit
+                    return result
+                result = self._eval(children[i])
+                i += 1
+            return result
+
+        if data == "and_expr":
+            children = node.children
+            result = self._eval(children[0])
+            i = 1
+            while i < len(children):
+                if not self._truthy(result):  # short-circuit
+                    return result
+                result = self._eval(children[i])
+                i += 1
+            return result
 
         if data == "compare_expr":
             return self._eval_compare(node)
@@ -566,7 +833,7 @@ class Interpreter:
     # ------------------------------------------------------------------ #
 
     def _truthy(self, value) -> bool:
-        if value is None or value is False:
+        if value is None or value is False or isinstance(value, _UndefinedType):
             return False
         if isinstance(value, (int, float)) and value == 0:
             return False
@@ -580,6 +847,8 @@ class Interpreter:
         if value is False:
             return "false"
         if value is None:
+            return "null"
+        if isinstance(value, _UndefinedType):
             return "undefined"
         if isinstance(value, list):
             return ",".join(self._js_str(el) for el in value)

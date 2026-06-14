@@ -17,12 +17,17 @@ JS_GRAMMAR = r"""
              | if_stmt
              | for_stmt
              | while_stmt
+             | do_while_stmt
              | expr ";"
 
     var_decl   : "let" NAME "=" expr
     const_decl : "const" NAME "=" expr
     assign_stmt: NAME "=" expr
                | NAME "+=" expr   -> plus_assign
+               | NAME "-=" expr   -> minus_assign
+               | NAME "*=" expr   -> mul_assign
+               | NAME "/=" expr   -> div_assign
+               | NAME "%=" expr   -> mod_assign
 
     func_decl  : "function" NAME "(" params? ")" block
     params     : NAME ("," NAME)*
@@ -33,7 +38,8 @@ JS_GRAMMAR = r"""
 
     if_stmt    : "if" "(" expr ")" block ("else" (block | if_stmt))?
     for_stmt   : "for" "(" for_init ";" expr ";" for_update ")" block
-    while_stmt : "while" "(" expr ")" block
+    while_stmt    : "while" "(" expr ")" block
+    do_while_stmt : "do" block "while" "(" expr ")" ";"
 
     for_init   : var_decl | const_decl | assign_stmt
     for_update : assign_stmt | incr_expr | decr_expr
@@ -42,7 +48,9 @@ JS_GRAMMAR = r"""
 
     block      : "{" statement* "}"
 
-    ?expr        : compare_expr
+    ?expr        : or_expr
+    ?or_expr     : and_expr ("||" and_expr)*
+    ?and_expr    : compare_expr ("&&" compare_expr)*
     ?compare_expr: add_expr (COMPARE_OP add_expr)*
     ?add_expr    : mul_expr ((ADD | SUB) mul_expr)*
     ?mul_expr    : pow_expr ((MUL | DIV | MOD) pow_expr)*
@@ -52,17 +60,23 @@ JS_GRAMMAR = r"""
                  | atom
 
     ?atom      : chain_expr
+           | subscript
+           | prop_access
            | func_call
            | array_literal
            | NUMBER                -> number
            | ESCAPED_STRING        -> string
            | "true"               -> true_val
            | "false"              -> false_val
+           | "null"               -> null_val
+           | "undefined"          -> undefined_val
            | NAME                 -> var
            | "(" expr ")"
 
     func_call     : NAME "(" arglist? ")"
     chain_expr    : atom "." NAME "(" arglist? ")"
+    subscript     : atom "[" expr "]"
+    prop_access   : atom "." NAME
     array_literal : "[" array_items? "]"
     array_items   : array_item ("," array_item)*
     array_item    : "..." NAME -> spread_elem
