@@ -61,7 +61,7 @@ for(let user of users){
     name.textContent = user.name;
 
     const age = document.createElement("span");
-    age.textContent = user.age;
+    age.textContent = `${user.age} years`;
 
     const image = document.createElement("img");
     image.src = user.photo
