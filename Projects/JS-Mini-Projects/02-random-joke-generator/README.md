@@ -17,7 +17,7 @@ A simple JavaScript DOM project that displays a random joke when the user clicks
 
 ## Live Demo
 
-https://ketansdev.github.io/Thunder/Projects/JS-Mini-Projects/01-random-joke-generator/
+https://ketansdev.github.io/Thunder/Projects/JS-Mini-Projects/02-random-joke-generator/
 
 ## Screenshot
 
