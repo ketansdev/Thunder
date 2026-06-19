@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    font-family: "Roboto Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+
+body{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+
+    background-color: #E5E9F4;
+}
+
+
+.container{
+    background-color: #fff;
+    width: 30%;
+    height: 40%;
+    margin: 20px;
+    border-radius: 20px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+
+
+.container h1{
+    font-size: 50px;
+    font-weight: 700;
+}
+
+.container h2{
+    font-size: 60px;
+    font-weight: 900;
+}
+
+#buttons{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+#buttons button{
+    width: 150px;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+#decrease{
+    background-color: #F5142A;
+    color: #fff;
+}
+
+#reset{
+    background-color: #4795F5;
+}
+
+#increase{
+    background-color: #47DB42;
+}
+
+
+/* responsive */
+
+@media  screen and (max-width: 900px) {
+    .container{
+    width: 35%;
+    height: 50%;
+}
+
+}
+
+@media  screen and (max-width: 700px) {
+    .container{
+    width: 300px;
+    height: 50%;
+}
+
+}
