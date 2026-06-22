@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet" />
+</head>
+
+<body>
+
+    <div class="card">
+        <h1><span>Love</span> Calculator</h1>
+        <p><span>❤️</span> Calculate the love between two hearts <span>❤️</span></p>
+
+        <form>
+            
+            <label for="girl">Girl Name <i class="ri-women-line"></i></label>
+            <div class="inputDiv">
+                <span><i class="ri-user-fill girl"></i></span>
+                <input type="Enter girl name" id="girl">
+            </div>
+
+            <label for="boy">Boy Name <i class="ri-men-line"></i></label>
+            <div class="inputDiv">
+                <span><i class="ri-user-fill boy"></i></span>
+                <input type="Enter girl name" id="boy">
+            </div>
+            <button>Calculate Love</button>
+
+        </form>
+        <div id="divide">
+            <div class="line"></div>
+            <span>❤️</span>
+            <div class="line"></div>
+        </div>
+
+        <div class="resultContainer">
+            <h2 id="result">Click Calculate Love to see your Love ❤️ Percentage</h2>
+            <p class="text"></p>
+            <p class="suggestion"></p>
+        </div>
+
+    </div>
+    <script src="./script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,157 @@
+@import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+  font-family: "Josefin Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background-image: url(./love-calculator-bg.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card {
+  width: 500px;
+  height: 700px;
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 10px;
+  margin: 20px;
+  box-shadow: rgba(181, 90, 188, 0.16) 0px 10px 36px 0px, rgba(241, 133, 245, 0.153) 0px 0px 0px 1px;
+}
+
+form {
+  height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+form .inputDiv {
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.inputDiv input {
+  padding: 0 5px;
+  font-size: 20px;
+}
+
+.card h1,
+.card p {
+  text-align: center;
+}
+
+.card h1 {
+  font-size: 40px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.card h1 span {
+  color: #aa0947;
+}
+
+.card p {
+  color: rgb(103, 100, 100);
+  margin-bottom: 30px;
+}
+
+.inputDiv {
+  border: 1px solid;
+}
+
+.inputDiv input {
+  outline: none;
+  border: none;
+  background: none;
+}
+
+.inputDiv:nth-of-type(1) {
+  border: 1px solid pink;
+  color: #AA0947;
+}
+
+.inputDiv:nth-of-type(2) {
+  border: 1px solid #3b8deb;
+  color: #3b8deb;
+}
+
+#girl{
+    color: #AA0947;
+}
+
+#boy{
+    color: #3b8deb;
+}
+
+button{
+    width: 80%;
+    margin: 20px 0;
+    align-self: center;
+    background-color: #AA0947;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 15px;
+    cursor: pointer;
+}
+
+
+#divide{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+#divide .line{
+    height: 1px;
+    width: 100%;
+    background-color: gray;
+}
+
+
+.resultContainer{
+    background-image: url(./result-bg.jpg);
+    background-size: cover;
+    height: 200px;
+    margin: 25px 0;
+    border-radius: 10px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 10px;
+}
+
+
+.lovePercentage{
+    font-size: 50px;
+    color: #AA0947;
+    font-weight: 900;
+}
+
+.text{
+    font-size: 20px;
+    color: #AA0947;
+}
