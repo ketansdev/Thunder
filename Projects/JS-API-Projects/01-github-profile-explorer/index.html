@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet" />
+</head>
+
+<body>
+    <header>
+        <h1><i class="ri-github-fill"></i> Github Profile <span>Explorer</span></h1>
+        <p>Search and explore Github Profiles</p>
+        <div id="search">
+            <i class="ri-search-line"></i>
+            <input type="search" placeholder="Search Github usename...">
+            <button id="searchBtn">Search</button>
+        </div>
+    </header>
+    <main>
+
+        <div id="container">
+            <div id="profilesContainer">
+                <div class="mainTop">
+                    <h2><i class="ri-star-line"></i> Popular Github Developers</h2>
+                    <span>20 Profiles</span>
+                </div>
+                <div id="profiles"></div>
+            </div>
+            <div id="searchedProfile">
+                <div id="defaultTextContainer">
+                    <h3>No Profile to Display</h3>
+                    <p>Search your github username to get more information of the profile</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <div>
+            <button id="previous"><i class="ri-arrow-left-s-line"></i> Previous</button>
+            <span id="pageCount">Page 1</span>
+            <button id="next">Next <i class="ri-arrow-right-s-line"></i></button>
+        </div>
+    </footer>
+    <script src="./script.js"></script>
+</body>
+
+</html>
