@@ -36,20 +36,19 @@ async function fetchGithubUsers(page = 0) {
     profileLink.href = user.html_url;
     profileLink.innerHTML = `View Profile`;
 
+    profileLink.target = "_blank";
+    profileLink.rel = "noopener noreferrer";
+
     cards.append(avatar, name, profileLink);
     profiles.append(cards);
   }
 
   const card = document.querySelectorAll(".cards");
-  console.log([...card])
+  console.log([...card]);
   const arr = [...card];
-  arr.forEach((card) =>{
-    card.addEventListener("click", (e) =>{
-        
-    })
-  })
-
-
+  arr.forEach((card) => {
+    card.addEventListener("click", (e) => {});
+  });
 }
 
 fetchGithubUsers();
@@ -104,9 +103,12 @@ async function fetchGithubProfile(profileName) {
         </div>
     </div>`;
   const searchedProfileLink = document.createElement("a");
-  searchedProfileLink.classList.add("searchedProfileLink")
+  searchedProfileLink.classList.add("searchedProfileLink");
   searchedProfileLink.textContent = "View Profile";
-  searchedProfileLink.href = data.url;
+  searchedProfileLink.href = data.html_url;
+
+  searchedProfileLink.target = "_blank";
+  searchedProfileLink.rel = "noopener noreferrer";
 
   card.append(avatar, name, bio, div, searchedProfileLink);
 
@@ -117,4 +119,3 @@ searchBtn.addEventListener("click", () => {
   const profilName = input.value;
   fetchGithubProfile(profilName);
 });
-
