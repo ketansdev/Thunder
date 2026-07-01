@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet" />
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div id="logo">
+                <span><i class="ri-cloud-windy-line"></i></span>
+                <div>Weather App</div>
+            </div>
+            <div id="search">
+                <div>
+                    <i class="ri-search-line"></i>
+                    <input type="text" placeholder="Search for a city ...">
+                </div>
+                <button>Search</button>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <section id="defaultText">
+            <div>Weather information will appear here.</div> <p>🌤️ Enter a city name in the search bar to view the current weather.</p>
+        </section>
+        <section id="weatherInfo">
+            <div id="iconContainer"></div>
+            <div id="temperatureLocation"></div>
+            <div id="temperatureInfo"></div>
+        </section>
+        <section id="timeInfo"></section>
+
+    </main>
+    <script src="./script.js"></script>
+</body>
+
+</html>
