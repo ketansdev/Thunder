@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word and Text Counter</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet" />
+</head>
+
+<body>
+    <header>
+        <div>
+            <h1> <span><i class="ri-notion-line"></i></span>Word & Text Counter</h1>
+            <p>Type or paste your text below to see the live count</p>
+        </div>
+        <button><i class="ri-delete-bin-line"></i> Clear All</button>
+    </header>
+    <main>
+        <section id="inputSection">
+            <textarea name="" id="input" placeholder="Type or paste your text here..."></textarea>
+            <p><span id="centerDot">&middot</span>Live Count</p>
+        </section>
+        <section id="statsSection">
+            <h2><span id="statsIcon"><i class="ri-line-chart-line"></i></span>Statistics</h2>
+            <div id="stats">
+                <div class="box line">
+                    <p>Charachters</p>
+                    <span id="char-w-space">0</span>
+                    <p>with spaces</p>
+                </div>
+                <div class="box line">
+                    <p>Charachters</p>
+                    <span id="char-wo-space">0</span>
+                    <p>without spaces</p>
+                </div>
+                <div class="box line">
+                    <p>Words</p>
+                    <span id="word">0</span>
+                </div>
+                <div class="box">
+                    <p>Sentences</p>
+                    <span id="sentence">0</span>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <section>
+            <p><span><i class="ri-lightbulb-line"></i></span>Tip : You can copy and paste any text to count instantly.</p>
+        </section>
+    </footer>
+
+    <script src="./script.js"></script>
+</body>
+
+</html>

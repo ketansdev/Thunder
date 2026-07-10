@@ -1,0 +1,300 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+  font-family: "DM Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+
+:root {
+  /* ==========================
+     BACKGROUNDS
+  ========================== */
+
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: #1d2433;
+  --bg-input: #111827;
+
+  /* ==========================
+     TEXT COLORS
+  ========================== */
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  /* ==========================
+     ACCENT
+  ========================== */
+
+  --primary: #8b5cf6;
+  --primary-hover: #7c3aed;
+
+  /* Statistics Colors */
+
+  --character: #8b5cf6;
+  --character-no-space: #3b82f6;
+  --word: #22c55e;
+  --sentence: #fbbf24;
+  --paragraph: #ec4899;
+  --reading-time: #a855f7;
+
+  /* ==========================
+     BORDERS
+  ========================== */
+
+  --border-color: rgba(255, 255, 255, 0.08);
+
+  /* ==========================
+     SHADOWS
+  ========================== */
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.35);
+
+  /* ==========================
+     BORDER RADIUS
+  ========================== */
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  /* ==========================
+     SPACING
+  ========================== */
+
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding: 20px;
+  height: 100px;
+  flex-shrink: 0;
+}
+
+header button {
+  position: absolute;
+  right: 30px;
+}
+
+header h1 {
+  font-size: 40px;
+  text-align: center;
+}
+
+header p {
+  font-size: 20px;
+  text-align: center;
+}
+
+header button {
+  font-size: 18px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: var(--character);
+}
+
+/*  main */
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow: hidden;
+  padding: 20px;
+}
+
+main #inputSection {
+  flex: 5;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+#inputSection textarea {
+  flex: 1;
+  resize: none;
+  padding: 20px;
+  font-size: 16px;
+  background-color: var(--bg-input);
+  border: 1px solud var(--border-color);
+  color: var(--text-muted);
+  border-radius: 20px;
+  border: 1px solid var(--primary-hover);
+  outline: none;
+}
+
+#inputSection p {
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+#inputSection #centerDot {
+  font-size: 50px;
+  font-weight: 900;
+  color: var(--word);
+  margin-right: 10px;
+}
+
+main #statsSection {
+  flex: 2;
+  background-color: var(--bg-secondary);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+#statsSection #stats {
+  display: flex;
+  justify-content: space-around;
+}
+
+#statsSection #statsIcon {
+  margin-right: 10px;
+  color: var(--character);
+  font-size: 30px;
+  font-weight: 800;
+}
+
+#statsSection h2 {
+  margin-bottom: 10px;
+}
+
+#stats .box {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  /* justify-content: center; */
+  align-items: center;
+}
+
+#stats .line {
+  border-right: 1px solid var(--border-color);
+}
+
+.box span {
+  font-size: 30px;
+}
+
+.box #char-w-space {
+  color: var(--character);
+}
+
+.box #char-wo-space {
+  color: var(--character-no-space);
+}
+
+.box #word {
+  color: var(--word);
+}
+
+.box #sentence {
+  color: var(--sentence);
+}
+
+/* Footer */
+
+footer {
+  flex-shrink: 0;
+  padding: 20px;
+}
+
+footer section {
+  background-color: var(--bg-secondary);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+footer section span {
+  color: var(--character);
+  margin-right: 10px;
+  font-size: 20px;
+}
+
+/* responsive */
+
+@media screen and (max-width: 800px) {
+  header {
+    justify-content: space-between;
+  }
+
+  header button {
+    position: static;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  header {
+    gap: 20px;
+    flex-wrap: wrap;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+  }
+  main {
+    /* flex: unset; */
+    /* overflow: auto; */
+    gap: 0;
+  }
+
+  #inputSection {
+    background-color: var(--bg-primary);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  footer {
+    /* flex: unset; */
+    text-align: center;
+  }
+  #statsSection #stats {
+    flex-wrap: wrap;
+    gap: 20px;
+    height: 200px;
+    overflow-y: scroll;
+  }
+
+  #stats .line {
+    border-bottom: 1px solid var(--border-color);
+    border-right: none;
+  }
+
+  .box {
+    padding-bottom: 20px;
+  }
+}
