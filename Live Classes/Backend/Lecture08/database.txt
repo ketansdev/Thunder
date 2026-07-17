@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Ketan Shetge",
+    "age": 25,
+    "city": "Panvel",
+    "accountNumber": 123456789,
+    "balance": 1000
+  },
+  {
+    "name": "Nikhil Kadam",
+    "age": 30,
+    "city": "Panvel",
+    "accountNumber": 1243,
+    "balance": 2000
+  }
+]
