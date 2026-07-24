@@ -5,13 +5,15 @@ import Product from "./productSchema.js";
 import dns from "node:dns";
 import products from "./products.js";
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
 dns.setServers(["8.8.8.8"]);
 
 const app = express();
 
-await mongoose.connect(
-  "mongodb+srv://ketanshetgedev:ketan210467@cluster0.85arw9c.mongodb.net/Thunder",
-);
+await mongoose.connect(process.env.MONGO_URI);
 
 app.use(express.json());
 

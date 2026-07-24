@@ -4,11 +4,13 @@ import mongoose from "mongoose";
 import User from "./userSchema.js";
 import "./dnsFix.js";
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
 const app = express();
 
-await mongoose.connect(
-  "mongodb+srv://ketanshetgedev:ketan210467@cluster0.85arw9c.mongodb.net/Thunder",
-);
+await mongoose.connect(process.env.MONGO_URI);
 
 app.use(express.json());
 
